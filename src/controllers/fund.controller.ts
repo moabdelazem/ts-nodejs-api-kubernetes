@@ -1,5 +1,7 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { FundModel } from "../models/fund.model";
+import { createFundSchema, updateFundSchema } from "../schemas/fund.schema";
+import { AppError } from "../utils/app-error";
 
 const DIVERSIFICATION_CAP = 10;
 const COVERAGE_CAP = 50_000;
@@ -11,107 +13,75 @@ function calculateShieldScore(fundCount: number, totalAmount: number): number {
 }
 
 export const FundController = {
-  async getSummary(_req: Request, res: Response) {
+  async getSummary(_req: Request, res: Response, next: NextFunction) {
     try {
       const { total_amount, fund_count } = await FundModel.getSummary();
       const shield_score = calculateShieldScore(fund_count, total_amount);
-
       res.json({ total_amount, fund_count, shield_score });
     } catch (err) {
-      console.error("Error fetching summary:", err);
-      res.status(500).json({ error: "Failed to fetch summary" });
+      next(err);
     }
   },
 
-  async getAll(_req: Request, res: Response) {
+  async getAll(_req: Request, res: Response, next: NextFunction) {
     try {
       const funds = await FundModel.getAll();
       res.json(funds);
     } catch (err) {
-      console.error("Error fetching funds:", err);
-      res.status(500).json({ error: "Failed to fetch funds" });
+      next(err);
     }
   },
 
-  async getById(req: Request, res: Response) {
+  async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        res.status(400).json({ error: "Invalid fund ID" });
-        return;
-      }
+      if (isNaN(id)) throw AppError.badRequest("Invalid fund ID");
 
       const fund = await FundModel.getById(id);
-      if (!fund) {
-        res.status(404).json({ error: "Fund not found" });
-        return;
-      }
+      if (!fund) throw AppError.notFound("Fund not found");
 
       res.json(fund);
     } catch (err) {
-      console.error("Error fetching fund:", err);
-      res.status(500).json({ error: "Failed to fetch fund" });
+      next(err);
     }
   },
 
-  async create(req: Request, res: Response) {
+  async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { name, amount, description } = req.body;
-
-      if (!name || amount === undefined) {
-        res.status(400).json({ error: "name and amount are required" });
-        return;
-      }
-
-      const fund = await FundModel.create({ name, amount, description });
+      const data = createFundSchema.parse(req.body);
+      const fund = await FundModel.create(data);
       res.status(201).json(fund);
     } catch (err) {
-      console.error("Error creating fund:", err);
-      res.status(500).json({ error: "Failed to create fund" });
+      next(err);
     }
   },
 
-  async update(req: Request, res: Response) {
+  async update(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        res.status(400).json({ error: "Invalid fund ID" });
-        return;
-      }
+      if (isNaN(id)) throw AppError.badRequest("Invalid fund ID");
 
-      const { name, amount, description } = req.body;
-      const fund = await FundModel.update(id, { name, amount, description });
-
-      if (!fund) {
-        res.status(404).json({ error: "Fund not found" });
-        return;
-      }
+      const data = updateFundSchema.parse(req.body);
+      const fund = await FundModel.update(id, data);
+      if (!fund) throw AppError.notFound("Fund not found");
 
       res.json(fund);
     } catch (err) {
-      console.error("Error updating fund:", err);
-      res.status(500).json({ error: "Failed to update fund" });
+      next(err);
     }
   },
 
-  async delete(req: Request, res: Response) {
+  async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
-      if (isNaN(id)) {
-        res.status(400).json({ error: "Invalid fund ID" });
-        return;
-      }
+      if (isNaN(id)) throw AppError.badRequest("Invalid fund ID");
 
       const deleted = await FundModel.delete(id);
-      if (!deleted) {
-        res.status(404).json({ error: "Fund not found" });
-        return;
-      }
+      if (!deleted) throw AppError.notFound("Fund not found");
 
       res.status(204).send();
     } catch (err) {
-      console.error("Error deleting fund:", err);
-      res.status(500).json({ error: "Failed to delete fund" });
+      next(err);
     }
   },
 };
