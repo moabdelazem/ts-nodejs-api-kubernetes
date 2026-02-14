@@ -49,6 +49,16 @@ export const FundModel = {
     return result.rows[0] || null;
   },
 
+  async getSummary(): Promise<{ total_amount: number; fund_count: number }> {
+    const result = await query(
+      "SELECT COALESCE(SUM(amount), 0) AS total_amount, COUNT(*) AS fund_count FROM funds",
+    );
+    return {
+      total_amount: parseFloat(result.rows[0].total_amount),
+      fund_count: parseInt(result.rows[0].fund_count, 10),
+    };
+  },
+
   async delete(id: number): Promise<boolean> {
     const result = await query("DELETE FROM funds WHERE id = $1", [id]);
     return (result.rowCount ?? 0) > 0;
