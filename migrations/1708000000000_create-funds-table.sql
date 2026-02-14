@@ -1,3 +1,5 @@
+-- Up Migration: Create funds table
+
 CREATE TABLE IF NOT EXISTS funds (
     id          SERIAL PRIMARY KEY,
     name        VARCHAR(255) NOT NULL,
@@ -6,3 +8,7 @@ CREATE TABLE IF NOT EXISTS funds (
     created_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at  TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+--- Down Migration
+
+DROP TABLE IF EXISTS funds;

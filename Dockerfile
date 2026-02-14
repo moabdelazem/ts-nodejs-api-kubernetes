@@ -29,6 +29,9 @@ RUN npm ci --omit=dev
 # Copy compiled output from builder
 COPY --from=builder /app/dist dist/
 
+# Copy migration files
+COPY migrations/ migrations/
+
 # Non-root user for security
 USER node
 

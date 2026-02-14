@@ -9,7 +9,10 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "compose:up": "docker compose up -d",
     "compose:down": "docker compose down",
-    "compose:clean": "docker compose down -v"
+    "compose:clean": "docker compose down -v",
+    "migrate:up": "node-pg-migrate up --database-url-var DATABASE_URL --migrations-dir migrations",
+    "migrate:down": "node-pg-migrate down --database-url-var DATABASE_URL --migrations-dir migrations",
+    "migrate:create": "node-pg-migrate create --migrations-dir migrations"
   },
   "keywords": [
     "typescript",
@@ -24,6 +27,7 @@
   "dependencies": {
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
+    "node-pg-migrate": "^8.0.4",
     "pg": "^8.18.0",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",

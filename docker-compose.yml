@@ -11,7 +11,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-devdb}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./scripts/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./scripts/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test:
         [
