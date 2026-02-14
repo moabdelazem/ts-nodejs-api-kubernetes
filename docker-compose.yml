@@ -15,7 +15,7 @@ services:
     healthcheck:
       test:
         [
-          "CMD-EXEC",
+          "CMD-SHELL",
           "pg_isready -U ${POSTGRES_USER:-devuser} -d ${POSTGRES_DB:-devdb}",
         ]
       interval: 10s
