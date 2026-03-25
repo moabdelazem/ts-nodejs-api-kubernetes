@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+      - develop
+
+env:
+  NODE_VERSION: 22
+  DOCKER_IMAGE: moabdelazem/ts-nodejs-api-kubernetes
+
+jobs:
+  # ─── Job 1: Validate (runs on every PR and push) ───
+  validate:
+    name: Validate the codebase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Scan with grype
+        uses: anchore/scan-action@v7
+        with:
+          path: "."
+
+  # ─── Job 2: Release Please (auto-version + auto-tag on main) ───
+  release-please:
+    name: Release Please
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
+        with:
+          release-type: node
+
+  # ─── Job 3: Build & Push Docker Image ───
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: [validate, release-please]
+    # Run when:
+    #   - release-please created a release (semver tags), OR
+    #   - push to develop (dev snapshot tags)
+    # Uses always() so it doesn't skip when release-please is skipped (develop pushes)
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      github.event_name == 'push' &&
+      (
+        needs.release-please.outputs.release_created == 'true' ||
+        github.ref_name == 'develop'
+      )
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [[ "${{ needs.release-please.outputs.release_created }}" == "true" ]]; then
+            # Release-please created a version tag
+            VERSION="${{ needs.release-please.outputs.version }}"
+            MAJOR="${VERSION%%.*}"
+            MINOR="${VERSION%.*}"
+            echo "tags=${{ env.DOCKER_IMAGE }}:${VERSION},${{ env.DOCKER_IMAGE }}:${MINOR},${{ env.DOCKER_IMAGE }}:${MAJOR},${{ env.DOCKER_IMAGE }}:latest" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref_name }}" == "develop" ]]; then
+            # Push to develop — dev snapshot
+            SHA="${GITHUB_SHA::7}"
+            echo "tags=${{ env.DOCKER_IMAGE }}:dev-${SHA}" >> "$GITHUB_OUTPUT"
+            echo "version=dev-${SHA}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.tag.outputs.tags }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.tag.outputs.version }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
