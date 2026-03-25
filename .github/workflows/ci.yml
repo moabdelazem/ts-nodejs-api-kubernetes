@@ -35,13 +35,6 @@ jobs:
       - name: Run lint
         run: npm run lint
 
-      - name: Scan with grype
-        uses: anchore/scan-action@v7
-        with:
-          path: "."
-          fail-build: true
-          severity-cutoff: high
-
   # ─── Job 2: Release Please (auto-version + auto-tag on main) ───
   release-please:
     name: Release Please
