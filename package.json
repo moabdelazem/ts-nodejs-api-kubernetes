@@ -1,6 +1,6 @@
 {
   "name": "ts-nodejs-api-kubernetes",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A sample REST API built with TypeScript, Express, and PostgreSQL — containerized with Docker and ready for Kubernetes deployment.",
   "main": "dist/server.js",
   "scripts": {
