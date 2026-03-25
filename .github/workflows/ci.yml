@@ -49,11 +49,15 @@ jobs:
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
       - name: Run Release Please
         id: release
         uses: googleapis/release-please-action@v4
         with:
-          release-type: node
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
 
   # ─── Job 3: Build & Push Docker Image ───
   build-and-push:
