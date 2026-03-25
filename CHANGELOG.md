@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/compare/v1.1.0...v1.1.1) (2026-03-25)
+
+
+### Bug Fixes
+
+* correct release-please manifest format ([829ef25](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/commit/829ef25af74e4078b0b8a0ebcfdf9dbc251ff65b))
+
 # Changelog
 
 ## [1.1.0](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/compare/v1.0.0...v1.1.0) (2026-03-25)
