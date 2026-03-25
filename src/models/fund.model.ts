@@ -20,11 +20,7 @@ export const FundModel = {
     return result.rows[0] || null;
   },
 
-  async create(data: {
-    name: string;
-    amount: number;
-    description?: string;
-  }): Promise<Fund> {
+  async create(data: { name: string; amount: number; description?: string }): Promise<Fund> {
     const result = await query(
       "INSERT INTO funds (name, amount, description) VALUES ($1, $2, $3) RETURNING *",
       [data.name, data.amount, data.description || null],

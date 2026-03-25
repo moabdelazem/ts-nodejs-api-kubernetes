@@ -3,12 +3,9 @@ import { ZodError } from "zod";
 import { AppError } from "../utils/app-error";
 import logger from "../config/logger";
 
-export function errorHandler(
-  err: Error,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-) {
+export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction) {
+  void _next;
+
   if (err instanceof AppError) {
     logger.warn({ statusCode: err.statusCode, message: err.message });
     res.status(err.statusCode).json({ error: err.message });
