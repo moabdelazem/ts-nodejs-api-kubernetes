@@ -1,3 +1,15 @@
+# [1.2.0](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/compare/v1.1.1...v1.2.0) (2026-03-26)
+
+
+### Bug Fixes
+
+* correct tsconfig resolveJsonModule option ([2fff185](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/commit/2fff185085a640dc7da2b6bdc776393c33a35282))
+
+
+### Features
+
+* add /health/info endpoint with version and uptime ([052ccf2](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/commit/052ccf2ca009994df5231e1dcc46110fd45d4a22))
+
 ## [1.1.1](https://github.com/moabdelazem/ts-nodejs-api-kubernetes/compare/v1.1.0...v1.1.1) (2026-03-25)
 
 
